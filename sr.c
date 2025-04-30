@@ -1,23 +1,25 @@
+#include "sr.h"
 #include <stdio.h>
 #include <string.h>
-#include "sr.h"
 
-int base = 0;
+// Initialize global variables
 int nextseqnum = 0;
+int base = 0;
 struct pkt window[WINDOW_SIZE];
 
-int compute_checksum(struct pkt packet) {
-    int sum = packet.seqnum + packet.acknum;
-    for (int i = 0; i < PAYLOAD_SIZE; i++) {
-        sum += packet.payload[i];
-    }
-    return sum;
+// Initialize A
+void A_init(void) {
+    nextseqnum = 0;
+    base = 0;
+    printf("A_init: sender initialized\n");
 }
 
-int is_corrupt(struct pkt packet) {
-    return compute_checksum(packet) != packet.checksum;
+// Initialize B
+void B_init(void) {
+    printf("B_init: receiver initialized\n");
 }
 
+// Function to output from A
 void A_output(struct msg message) {
     if (nextseqnum < base + WINDOW_SIZE) {
         struct pkt packet;
@@ -41,11 +43,14 @@ void A_output(struct msg message) {
     }
 }
 
+// Function to input to A
 void A_input(struct pkt packet) {
     if (!is_corrupt(packet)) {
         printf("A_input: received ACK for seqnum = %d\n", packet.acknum);
+
         if (packet.acknum >= base && packet.acknum < nextseqnum) {
             base = packet.acknum + 1;
+
             if (base == nextseqnum) {
                 stoptimer(A);
             } else {
@@ -57,43 +62,57 @@ void A_input(struct pkt packet) {
     }
 }
 
+// Function to handle timer interrupt in A
 void A_timerinterrupt(void) {
     printf("A_timerinterrupt: resending all unACKed packets\n");
+
     for (int i = base; i < nextseqnum; i++) {
-        printf("A_timerinterrupt: retransmitting seqnum = %d\n", i);
         tolayer3(A, window[i % WINDOW_SIZE]);
     }
+
     starttimer(A, TIMEOUT);
 }
 
-void A_init(void) {
-    base = 0;
-    nextseqnum = 0;
-}
-
+// Function to input to B
 void B_input(struct pkt packet) {
     if (!is_corrupt(packet)) {
         printf("B_input: received expected packet seqnum = %d\n", packet.seqnum);
+
         struct pkt ack_pkt;
         ack_pkt.seqnum = 0;
         ack_pkt.acknum = packet.seqnum;
         ack_pkt.checksum = compute_checksum(ack_pkt);
         tolayer3(B, ack_pkt);
+
         tolayer5(B, packet.payload);
     } else {
         printf("B_input: packet corrupted, ignoring\n");
     }
 }
 
-void B_init(void) {
-    // Nothing to initialize for now
+// Function to compute checksum
+int compute_checksum(struct pkt packet) {
+    int checksum = 0;
+    for (int i = 0; i < PAYLOAD_SIZE; i++) {
+        checksum += packet.payload[i];
+    }
+    checksum += packet.seqnum + packet.acknum;
+    return checksum;
 }
 
-// Stub functions required by emulator but unused in unidirectional A->B transfer
+// Function to check if packet is corrupted
+int is_corrupt(struct pkt packet) {
+    return compute_checksum(packet) != packet.checksum;
+}
+
+// Placeholder function for B_output
 void B_output(struct msg message) {
-    // Not used in this assignment
+    // Placeholder function for B_output
+    printf("B_output: this is a placeholder\n");
 }
 
+// Placeholder function for B_timerinterrupt
 void B_timerinterrupt(void) {
-    // Not used in this assignment
+    // Placeholder function for B_timerinterrupt
+    printf("B_timerinterrupt: this is a placeholder\n");
 }
