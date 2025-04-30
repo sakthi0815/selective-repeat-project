@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -ansi -pedantic
+CFLAGS = -Wall -std=c99 -pedantic
 
 SR_SRCS = sr.c emulator.c
 SR_HDRS = sr.h emulator.h
