@@ -1,28 +1,25 @@
 #ifndef SR_H
 #define SR_H
 
-#include "emulator.h"  // Include emulator.h, which includes emulator.h definitions
+#include "emulator.h"  // Ensure emulator.h is included once for msg and pkt structs
 
-#define WINDOW_SIZE 8
-#define TIMEOUT 30
-#define PAYLOAD_SIZE 20
+// Define constants for the window size and timeout
+#define WINDOW_SIZE 4  // Set your desired window size here
+#define TIMEOUT 16.0   // Timeout value for retransmissions
 
-// Declare external variables
-extern int nextseqnum;
-extern int base;
-extern struct pkt window[WINDOW_SIZE];
-
+// Function declarations
+void A_init();
 void A_output(struct msg message);
 void A_input(struct pkt packet);
-void A_timerinterrupt(void);
+void A_timerinterrupt();
+
+void B_init();
 void B_input(struct pkt packet);
+
+extern struct pkt window[WINDOW_SIZE];  // Window array for Selective Repeat
+
+// Function prototypes
 int compute_checksum(struct pkt packet);
 int is_corrupt(struct pkt packet);
-
-// Declare functions
-extern void A_init(void);
-extern void B_init(void);
-extern void B_output(struct msg message);
-extern void B_timerinterrupt(void);
 
 #endif
