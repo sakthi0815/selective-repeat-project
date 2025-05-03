@@ -1,13 +1,13 @@
-CC = gcc
-CFLAGS = -Wall -std=c99 -pedantic
-
-SR_SRCS = sr.c emulator.c
-SR_HDRS = sr.h emulator.h
-
 all: sr
 
-sr: $(SR_SRCS) $(SR_HDRS)
-	$(CC) $(CFLAGS) -o sr $(SR_SRCS)
+sr: sr.o emulator.o
+	gcc -Wall -std=c99 -pedantic -o sr sr.o emulator.o
+
+sr.o: sr.c sr.h
+	gcc -Wall -std=c99 -pedantic -c sr.c
+
+emulator.o: emulator.c emulator.h gbn.h
+	gcc -Wall -std=c99 -pedantic -c emulator.c
 
 clean:
 	rm -f sr *.o
